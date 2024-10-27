@@ -1,12 +1,20 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  signInFailure,
+  signInStart,
+  signInSuccess,
+} from "../../redux/user/userSlice";
 
 export default function SignIn() {
   const [formData, setFormData] = useState({});
-  const [error, setError] = useState(false);
-  const [loading, setLoading] = useState(false);
+  // const [error, setError] = useState(false);
+  // const [loading, setLoading] = useState(false);
+  const { loading, error } = useSelector((state) => state.user);
 
   let navigate = useNavigate();
+  let dispatch = useDispatch();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -15,8 +23,9 @@ export default function SignIn() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      setLoading(true);
-      setError(false);
+      // setLoading(true);
+      // setError(false);
+      dispatch(signInStart);
       const res = await fetch("/api/auth/signin", {
         method: "POST",
         headers: {
@@ -27,16 +36,19 @@ export default function SignIn() {
 
       const data = await res.json();
       console.log(data);
-      setLoading(false);
+      // setLoading(false);
       if (data.success === false) {
-        setError(true);
+        // setError(true);
+        dispatch(signInFailure(data));
         return;
       }
-      setError(false);
+      // setError(false);
+      dispatch(signInSuccess(data));
       navigate("/");
     } catch (error) {
-      setLoading(false);
-      setError(true);
+      // setLoading(false);
+      // setError(true);
+      signInFailure(error);
     }
   };
 
@@ -78,7 +90,9 @@ export default function SignIn() {
           <span className="text-blue-500">SignUp</span>
         </Link>
       </div>
-      <p className="text-red-700">{error ? "Something went wrong" : ""}</p>
+      <p className="text-red-700">
+        {error ? error.message || "Something went wrong" : ""}
+      </p>
     </div>
   );
 }
